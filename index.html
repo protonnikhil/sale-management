@@ -1,1 +1,647 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SalesOS — Flagship Sales Management</title>
+<style>
+:root{
+  --bg:#0b0f1a; --bg2:#111827; --card:#161f30; --card2:#1c2740;
+  --line:#26314b; --txt:#e8edf7; --mut:#8b98b3;
+  --acc:#5b8cff; --acc2:#22d3ee; --ok:#34d399; --warn:#fbbf24; --bad:#f87171;
+  --rad:16px; --shadow:0 8px 30px rgba(0,0,0,.45);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',system-ui,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:80px}
+.hidden{display:none!important}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:10px;padding:14px 16px;
+  background:rgba(11,15,26,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc2));
+  display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:18px;box-shadow:0 4px 16px rgba(91,140,255,.4)}
+.topbar h1{font-size:17px;font-weight:700}
+.topbar.sub{font-size:11px;color:var(--mut)}
+.topbar.spacer{flex:1}
+.icon-btn{width:38px;height:38px;border-radius:11px;background:var(--card);border:1px solid var(--line);color:var(--txt);
+  font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+.icon-btn:active{transform:scale(.92)}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;background:rgba(17,24,39,.92);
+  backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.navitem{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;
+  color:var(--mut);font-size:10.5px;cursor:pointer;transition:.2s;border:none;background:none;font-family:inherit}
+.navitem.ic{font-size:20px}
+.navitem.active{color:var(--acc2)}
+.navitem.active.ic{transform:translateY(-2px)}
+.page{padding:16px;max-width:900px;margin:0 auto;animation:fade.25s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.page-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--mut);margin-bottom:18px}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:var(--rad);
+  padding:16px;box-shadow:var(--shadow)}
+.stat.lbl{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.stat.val{font-size:22px;font-weight:800}
+.stat.delta{font-size:11px;margin-top:4px}
+.delta.up{color:var(--ok)}.delta.dn{color:var(--bad)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;border-radius:12px;
+  border:none;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit}
+.btn:active{transform:scale(.96)}
+.btn-pri{background:linear-gradient(135deg,var(--acc),#3b6fe0);color:#fff;box-shadow:0 6px 20px rgba(91,140,255,.35)}
+.btn-ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+.btn-ok{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.btn-bad{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;color:#fff}
+.btn-warn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+.btn-block{width:100%}
+.btn-sm{padding:8px 12px;font-size:12.5px;border-radius:9px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--mut);margin-bottom:6px;font-weight:600}
+.inp,select.inp,textarea.inp{width:100%;padding:12px 14px;border-radius:11px;border:1px solid var(--line);
+  background:var(--bg2);color:var(--txt);font-size:14.5px;font-family:inherit;outline:none;transition:.2s}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(91,140,255,.18)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.rowitem{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--card2);border:1px solid var(--line);
+  border-radius:13px;margin-bottom:10px;transition:.2s}
+.rowitem:active{background:#243154}
+.rowitem.avatar{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:16px;flex-shrink:0}
+.rowitem.info{flex:1;min-width:0}
+.rowitem.info.t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rowitem.info.s{font-size:11.5px;color:var(--mut);margin-top:2px}
+.rowitem.amt{text-align:right;font-size:14px;font-weight:700;flex-shrink:0}
+.rowitem.amt.s{font-size:11px;font-weight:500;margin-top:2px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:8px 15px;border-radius:20px;background:var(--card2);border:1px solid var(--line);color:var(--mut);
+  font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;transition:.2s;font-family:inherit}
+.chip.active{background:linear-gradient(135deg,var(--acc),#3b6fe0);color:#fff;border-color:transparent}
+.tblwrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:420px}
+th{padding:11px 12px;text-align:left;background:var(--card2);color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+td{padding:11px 12px;border-top:1px solid var(--line);white-space:nowrap}
+tr:active td{background:#1a2340}
+.billitem{display:flex;gap:10px;align-items:center;background:var(--card2);border:1px solid var(--line);
+  border-radius:13px;padding:11px;margin-bottom:9px}
+.billitem.bi-info{flex:1;min-width:0}
+.billitem.bi-info.n{font-size:13.5px;font-weight:600}
+.billitem.bi-info.p{font-size:11.5px;color:var(--mut)}
+.qtyctl{display:flex;align-items:center;gap:8px}
+.qtyctl button{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:var(--bg2);color:var(--txt);font-size:16px;cursor:pointer}
+.qtyctl span{min-width:26px;text-align:center;font-weight:700;font-size:14px}
+.summarybar{position:sticky;bottom:76px;background:linear-gradient(145deg,var(--card),var(--card2));
+  border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:14px;box-shadow:var(--shadow)}
+.sumrow{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);padding:3px 0}
+.sumrow.total{font-size:18px;font-weight:800;color:var(--txt);border-top:1px dashed var(--line);margin-top:6px;padding-top:9px}
+.fab{position:fixed;right:18px;bottom:96px;z-index:55;width:58px;height:58px;border-radius:18px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));border:none;color:#fff;font-size:26px;cursor:pointer;
+  box-shadow:0 10px 30px rgba(91,140,255,.5);transition:.2s;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(.9)}
+.overlay{position:fixed;inset:0;background:rgba(4,7,14,.7);backdrop-filter:blur(4px);z-index:90;display:flex;
+  align-items:flex-end;justify-content:center;animation:fade.2s}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:24px 24px 0 0;width:100%;max-width:560px;
+  max-height:92vh;overflow-y:auto;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:slideup.28s}
+@keyframes slideup{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+.sheet.grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 16px}
+.sheet h2{font-size:19px;margin-bottom:16px}
+.center-msg{text-align:center;padding:44px 16px;color:var(--mut)}
+.center-msg.big{font-size:42px;margin-bottom:10px}
+#toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);background:#1e293b;
+  border:1px solid var(--line);color:var(--txt);padding:12px 20px;border-radius:12px;font-size:13.5px;z-index:200;
+  opacity:0;pointer-events:none;transition:.3s;box-shadow:var(--shadow);max-width:88vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700}
+.b-ok{background:rgba(52,211,153,.15);color:var(--ok)}
+.b-warn{background:rgba(251,191,36,.15);color:var(--warn)}
+.b-bad{background:rgba(248,113,113,.15);color:var(--bad)}
+.b-info{background:rgba(91,140,255,.15);color:var(--acc)}
+.ringwrap{display:flex;align-items:center;gap:16px}
+canvas{max-width:100%}
+.searchbar{position:relative;margin-bottom:14px}
+.searchbar.inp{padding-left:40px}
+.searchbar::before{content:'🔍';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.6}
+@media(min-width:820px){
+  body{padding-bottom:0;padding-left:220px}
+ .bottomnav{display:none}
+ .sidebar{display:flex!important;position:fixed;left:0;top:0;bottom:0;width:210px;flex-direction:column;
+    background:var(--bg2);border-right:1px solid var(--line);padding:20px 12px;z-index:70;gap:4px}
+ .sidebar.navitem{flex-direction:row;justify-content:flex-start;padding:12px 14px;font-size:14px;gap:12px;border-radius:12px}
+ .sidebar.navitem.active{background:rgba(91,140,255,.12)}
+ .fab{bottom:30px}
+ .summarybar{bottom:20px}
+}
+.sidebar{display:none}
+.empty{padding:34px 10px;text-align:center;color:var(--mut);font-size:13px}
+.empty.e{font-size:36px;margin-bottom:8px}
+#printArea{display:none}
+@media print{
+  body>*{display:none!important}
+  body{padding:0;background:#fff}
+  #printArea{display:block!important;color:#000;font-family:Arial,sans-serif}
+ .p-head{display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:14px}
+ .p-head h1{font-size:22px}
+ .p-co{font-size:12px;color:#333}
+  table.p-tbl{width:100%;border-collapse:collapse;font-size:12px;margin:14px 0}
+ .p-tbl th{background:#eee;border:1px solid #999;padding:7px;text-align:left}
+ .p-tbl td{border:1px solid #999;padding:7px}
+ .p-sum{margin-left:auto;width:230px;font-size:13px}
+ .p-sum div{display:flex;justify-content:space-between;padding:4px 0}
+ .p-total{border-top:2px solid #000;font-weight:800;font-size:15px}
+ .p-foot{margin-top:26px;font-size:11px;color:#444;text-align:center;border-top:1px dashed #999;padding-top:10px}
+}
+.ob-hero{text-align:center;padding:26px 10px}
+.ob-hero.logo{width:76px;height:76px;font-size:36px;margin:0 auto 16px;border-radius:22px}
+.ob-hero h1{font-size:26px;margin-bottom:8px}
+.ob-hero p{color:var(--mut);font-size:14px;line-height:1.6}
+.featurelist{text-align:left;margin:22px auto;max-width:340px}
+.featurelist div{display:flex;gap:11px;align-items:center;padding:9px 0;font-size:14px}
+.featurelist.fi{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="sidebar" id="sidebar"></div>
+<header class="topbar">
+  <div class="logo">S</div>
+  <div><h1 id="tbTitle">Dashboard</h1><div class="sub" id="tbSub"></div></div>
+  <div class="spacer"></div>
+  <button class="icon-btn" onclick="openBackup()" title="Backup">⬇</button>
+  <button class="icon-btn" onclick="openSettings()" title="Settings">⚙</button>
+</header>
+<main id="app"></main>
+<nav class="bottomnav" id="bottomnav"></nav>
+<button class="fab hidden" id="fab" onclick="onFab()">＋</button>
+<div class="overlay hidden" id="overlay"><div class="sheet" id="sheet"></div></div>
+<div id="toast"></div>
+<div id="printArea"></div>
+<script>
+const LS='salesos_v1';
+let DB = load();
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(LS));if(d)return d;}catch(e){}
+  return {settings:{biz:'My Business',phone:'',gstin:'',addr:'',gstRate:18,lowStock:5,currency:'₹'},
+    products:[],customers:[],sales:[],expenses:[],seq:1,seeded:false};
+}
+function save(){localStorage.setItem(LS,JSON.stringify(DB));}
+const fmt=n=>(DB.settings.currency||'₹')+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const today=()=>new Date().toISOString().slice(0,10);
+const uid=()=>Date.now()+''+Math.floor(Math.random()*999);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const AV=['linear-gradient(135deg,#5b8cff,#22d3ee)','linear-gradient(135deg,#a855f7,#6366f1)',
+ 'linear-gradient(135deg,#f97316,#fbbf24)','linear-gradient(135deg,#10b981,#22d3ee)',
+ 'linear-gradient(135deg,#ef4444,#f97316)','linear-gradient(135deg,#ec4899,#a855f7)'];
+const avat=s=>AV[(String(s).charCodeAt(0)||0)%AV.length];
+  function seed(){
+  if(DB.seeded)return;DB.seeded=true;
+  const P=(name,price,cost,stock,unit)=>({id:uid(),name,price,cost,stock,unit:unit||'pcs'});
+  DB.products=[
+    P('Wireless Mouse',499,280,24),P('USB-C Cable 1m',199,60,80),P('Notebook A5',89,35,0),
+    P('Pen (Box of 10)',150,70,3),P('Bluetooth Speaker',1499,900,12),P('LED Bulb 9W',99,45,60),
+    P('Laptop Stand',899,520,8),P('Keyboard Mechanical',2499,1600,5)];
+  DB.customers=[
+    {id:uid(),name:'Rahul Traders',phone:'9876501234',email:'',addr:'Market Road, Delhi',balance:0,created:today()},
+    {id:uid(),name:'Walk-in Customer',phone:'',email:'',addr:'',balance:0,created:today()}];
+  const c=DB.customers[0],w=DB.customers[1];
+  for(let i=0;i<14;i++){
+    const d=new Date();d.setDate(d.getDate()-Math.floor(Math.random()*30));
+    const ds=d.toISOString().slice(0,10);
+    const items=[];let n=1+Math.floor(Math.random()*3);
+    for(let j=0;j<n;j++){const p=DB.products[Math.floor(Math.random()*DB.products.length)];
+      const q=1+Math.floor(Math.random()*3);items.push({pid:p.id,name:p.name,price:p.price,cost:p.cost,qty:q});}
+    const sub=items.reduce((s,it)=>s+it.price*it.qty,0);
+    const tax=Math.round(sub*DB.settings.gstRate/100),tot=sub+tax;
+    DB.sales.push({id:uid(),no:'INV-'+(1000+DB.seq++),date:ds,custId:Math.random()<.6?c.id:w.id,custName:Math.random()<.6?c.name:'Walk-in Customer',
+      items,subtotal:sub,discount:0,tax,total:tot,paid:Math.random()<.8?tot:tot*0,mode:Math.random()<.5?'Cash':'UPI'});
+  }
+  DB.expenses=[{id:uid(),name:'Shop Rent',amt:8000,date:today()},{id:uid(),name:'Courier Charges',amt:450,date:today()}];
+  save();
+}
+const PAGES=[
+ {id:'dash',ic:'📊',t:'Dashboard'},{id:'bill',ic:'🧾',t:'New Bill'},
+ {id:'sales',ic:'🛒',t:'Sales'},{id:'stock',ic:'📦',t:'Stock'},
+ {id:'cust',ic:'👥',t:'Customers'},{id:'more',ic:'☰',t:'More'}];
+let page='dash';
+function nav(id){page=id;render();window.scrollTo(0,0);}
+function renderNav(){
+  const items=PAGES.map(p=>`<button class="navitem ${page===p.id?'active':''}" onclick="nav('${p.id}')"><span class="ic">${p.ic}</span>${p.t}</button>`).join('');
+  document.getElementById('bottomnav').innerHTML=items;
+  document.getElementById('sidebar').innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:6px 10px 18px"><div class="logo">S</div><div><b>SalesOS</b><div style="font-size:10px;color:var(--mut)">Flagship Sales Suite</div></div></div>`+items;
+}
+function render(){
+  renderNav();
+  const T={dash:['Dashboard',DB.settings.biz],bill:['New Bill','Create GST invoice'],sales:['Sales','All transactions'],
+    stock:['Stock','Products & inventory'],cust:['Customers','Parties & ledger'],more:['Reports','Business insights']};
+  document.getElementById('tbTitle').textContent=T[page][0];
+  document.getElementById('tbSub').textContent=T[page][1];
+  const fab=document.getElementById('fab');
+  fab.classList.toggle('hidden',!(page==='stock'||page==='cust'||page==='sales'));
+  fab.textContent=page==='sales'?'🧾':'＋';
+  ({dash:rDash,bill:rBill,sales:rSales,stock:rStock,cust:rCust,more:rMore})[page]();
+}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),2200);}
+function openSheet(html){document.getElementById('sheet').innerHTML='<div class="grab"></div>'+html;
+  document.getElementById('overlay').classList.remove('hidden');}
+function closeSheet(){document.getElementById('overlay').classList.add('hidden');}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeSheet();});
+function onFab(){
+  if(page==='stock')productForm();
+  else if(page==='cust')customerForm();
+  else if(page==='sales'){draft={items:[],custId:'',discount:0,mode:'Cash'};nav('bill');}
+}
+function saleProfit(s){return s.items.reduce((a,i)=>a+(i.price-(i.cost||0))*i.qty,0)- (s.discount||0);}
+function custBal(id){return DB.sales.filter(s=>s.custId===id).reduce((a,s)=>a+(s.total-s.paid),0);}
+function rDash(){
+  const t=today(),m=t.slice(0,7);
+  const sToday=DB.sales.filter(s=>s.date===t);
+  const sMonth=DB.sales.filter(s=>s.date.startsWith(m));
+  const rev=sToday.reduce((a,s)=>a+s.total,0), revM=sMonth.reduce((a,s)=>a+s.total,0);
+  const outstanding=DB.sales.reduce((a,s)=>a+(s.total-s.paid),0);
+  const lowStock=DB.products.filter(p=>p.stock<=DB.settings.lowStock);
+  const profitM=sMonth.reduce((a,s)=>a+saleProfit(s),0);
+  const top=[...DB.products].sort((a,b)=>qtySold(b.id)-qtySold(a.id)).slice(0,5);
+  app.innerHTML=`
+  <div class="statgrid">
+    <div class="stat"><div class="lbl">Today's Sales</div><div class="val">${fmt(rev)}</div>
+      <div class="delta up">▲ ${sToday.length} bills</div></div>
+    <div class="stat"><div class="lbl">This Month</div><div class="val">${fmt(revM)}</div>
+      <div class="delta ${profitM>=0?'up':'dn'}">${profitM>=0?'▲':'▼'} ${fmt(Math.abs(profitM))} profit</div></div>
+    <div class="stat"><div class="lbl">Outstanding</div><div class="val" style="color:${outstanding>0?'var(--warn)':'var(--ok)'}">${fmt(outstanding)}</div>
+      <div class="delta">${DB.sales.filter(s=>s.total>s.paid).length} unpaid</div></div>
+    <div class="stat"><div class="lbl">Stock Value</div><div class="val">${fmt(DB.products.reduce((a,p)=>a+p.stock*p.cost,0))}</div>
+      <div class="delta ${lowStock.length?'dn':'up'}">${lowStock.length?lowStock.length+' low items':'✓ healthy'}</div></div>
+  </div>
+  <div class="panel"><h3>📈 Last 7 Days Revenue</h3><canvas id="chLine" height="150"></canvas></div>
+  <div class="panel"><h3>🏆 Top Selling Products</h3>
+    ${top.length?top.map(p=>{const q=qtySold(p.id);return `
+    <div class="rowitem"><div class="avatar" style="background:${avat(p.name)};color:#fff">${esc(p.name[0]||'?')}</div>
+      <div class="info"><div class="t">${esc(p.name)}</div><div class="s">${q} sold · ${fmt(p.price)}</div></div>
+      <div class="amt">${fmt(q*p.price)}</div></div>`}).join(''):'<div class="empty"><div class="e">📦</div>No sales yet</div>'}
+  </div>
+  <div class="panel"><h3>⚠️ Low Stock Alerts</h3>
+    ${lowStock.length?lowStock.map(p=>`<div class="rowitem"><div class="avatar" style="background:rgba(248,113,113,.15)">⚠️</div>
+      <div class="info"><div class="t">${esc(p.name)}</div><div class="s">Only ${p.stock} ${p.unit} left</div></div>
+      <button class="btn btn-sm btn-warn" onclick="restock('${p.id}')">Restock</button></div>`).join('')
+    :'<div class="empty"><div class="e">✅</div>All products well stocked</div>'}
+  </div>
+  <div class="panel"><h3>🧾 Recent Bills</h3>${recentBills()}</div>`;
+  drawLine();
+}
+function qtySold(pid){return DB.sales.reduce((a,s)=>a+s.items.filter(i=>i.pid===pid).reduce((x,i)=>x+i.qty,0),0);}
+function recentBills(){
+  const s=[...DB.sales].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  if(!s.length)return '<div class="empty"><div class="e">🧾</div>No bills yet — tap ＋ to create one</div>';
+  return s.map(b=>billRow(b)).join('');
+}
+function billRow(b){const due=b.total-b.paid;
+  return `<div class="rowitem" onclick="viewSale('${b.id}')">
+    <div class="avatar" style="background:${avat(b.custName)};color:#fff">${esc((b.custName||'?')[0])}</div>
+    <div class="info"><div class="t">${esc(b.no)} · ${esc(b.custName)}</div><div class="s">${b.date} · ${b.items.length} items · ${b.mode}</div></div>
+    <div class="amt">${fmt(b.total)}<div class="s"><span class="badge ${due>0?'b-warn':'b-ok'}">${due>0?'DUE '+fmt(due):'PAID'}</span></div></div></div>`;}
+function drawLine(){
+  const c=document.getElementById('chLine');if(!c)return;
+  const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return d.toISOString().slice(0,10);});
+  const vals=days.map(d=>DB.sales.filter(s=>s.date===d).reduce((a,s)=>a+s.total,0));
+  const ctx=c.getContext('2d'),W=c.width=c.offsetWidth*2,H=c.height=300;ctx.scale(1,1);
+  const max=Math.max(...vals,1),pad=14,bw=(W-pad*2)/7;
+  ctx.strokeStyle='#26314b';ctx.beginPath();
+  for(let g=0;g<=4;g++){const y=H-40-(H-70)*g/4;ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);}ctx.stroke();
+  days.forEach((d,i)=>{const v=vals[i],h=(H-70)*v/max,x=pad+i*bw+bw*.18,y=H-40-h;
+    const gr=ctx.createLinearGradient(0,y,0,H-40);gr.addColorStop(0,'#5b8cff');gr.addColorStop(1,'#22d3ee');
+    ctx.fillStyle=gr;const r=Math.min(8,bw*.18);ctx.beginPath();
+    ctx.roundRect(x,y,bw*.64,h,[r,r,0,0]);ctx.fill();
+    ctx.fillStyle='#8b98b3';ctx.font='20px Arial';ctx.textAlign='center';
+    ctx.fillText(d.slice(8)+'/'+(+d.slice(5,7)),x+bw*.32,H-12);
+    if(v>0){ctx.fillStyle='#e8edf7';ctx.font='bold 18px Arial';ctx.fillText((v/1000).toFixed(1)+'k',x+bw*.32,y-8);}});
+}
+function restock(id){const p=DB.products.find(x=>x.id===id);if(!p)return;
+  openSheet(`<h2>Restock — ${esc(p.name)}</h2>
+  <div class="field"><label>Quantity to add (${p.unit})</label><input class="inp" id="rq" type="number" min="1" value="10"></div>
+  <button class="btn btn-ok btn-block" onclick="doRestock('${id}')">Add Stock</button>
+  <button class="btn btn-ghost btn-block" style="margin-top:10px" onclick="closeSheet()">Cancel</button>`);}
+function doRestock(id){const q=+document.getElementById('rq').value||0;if(q<=0)return;
+  DB.products.find(x=>x.id===id).stock+=q;save();closeSheet();toast('Stock updated');render();}
+let draft={items:[],custId:'',discount:0,mode:'Cash'};
+function rBill(){
+  const g=DB.settings.gstRate;
+  const sub=draft.items.reduce((a,i)=>a+i.price*i.qty,0);
+  const tax=Math.round(sub*g/100),tot=Math.max(0,sub+tax-(+draft.discount||0));
+  app.innerHTML=`
+  <div class="panel">
+    <div class="grid2">
+      <div class="field" style="margin:0"><label>Customer</label>
+        <select class="inp" id="bCust" onchange="draft.custId=this.value">
+          <option value="">Walk-in Customer</option>
+          ${DB.customers.map(c=>`<option value="${c.id}" ${draft.custId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}
+        </select></div>
+      <div class="field" style="margin:0"><label>Payment</label>
+        <select class="inp" onchange="draft.mode=this.value">${['Cash','UPI','Card','Credit'].map(m=>`<option ${draft.mode===m?'selected':''}>${m}</option>`).join('')}</select></div>
+    </div>
+  </div>
+  <div class="searchbar"><input class="inp" id="bSearch" placeholder="Search product to add…" oninput="billSearch(this.value)"></div>
+  <div id="bResults"></div>
+  <div class="panel" style="margin-top:14px"><h3>🧾 Bill Items (${draft.items.length})</h3>
+    ${draft.items.length?draft.items.map((i,x)=>`
+    <div class="billitem"><div class="bi-info"><div class="n">${esc(i.name)}</div><div class="p">${fmt(i.price)} × ${i.qty} = <b>${fmt(i.price*i.qty)}</b></div></div>
+      <div class="qtyctl"><button onclick="qty(${x},-1)">−</button><span>${i.qty}</span><button onclick="qty(${x},1)">＋</button></div>
+      <button class="icon-btn" style="width:32px;height:32px;color:var(--bad)" onclick="draft.items.splice(${x},1);render()">✕</button></div>`).join('')
+    :'<div class="empty"><div class="e">🛒</div>Search & tap a product to add</div>'}
+  </div>
+  <div class="summarybar">
+    <div class="sumrow"><span>Subtotal</span><span>${fmt(sub)}</span></div>
+    <div class="sumrow"><span>GST (${g}%)</span><span>${fmt(tax)}</span></div>
+    <div class="sumrow"><span>Discount</span>
+      <input class="inp" style="width:90px;padding:6px 8px;text-align:right" type="number" value="${draft.discount}" onchange="draft.discount=+this.value;render()"></div>
+    <div class="sumrow total"><span>Total</span><span>${fmt(tot)}</span></div>
+    <button class="btn btn-pri btn-block" style="margin-top:10px" ${draft.items.length?'':'disabled style="opacity:.5"'}
+      onclick="checkout(${sub},${tax},${tot})">✅ Checkout & Save Bill</button>
+  </div>`;
+}
+function billSearch(q){
+  const box=document.getElementById('bResults');if(!q){box.innerHTML='';return;}
+  const hits=DB.products.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())).slice(0,6);
+  box.innerHTML=hits.length?hits.map(p=>`
+    <div class="rowitem" onclick="addItem('${p.id}')">
+      <div class="avatar" style="background:${avat(p.name)};color:#fff">${esc(p.name[0])}</div>
+      <div class="info"><div class="t">${esc(p.name)}</div><div class="s">Stock: ${p.stock} ${p.unit} · Cost ${fmt(p.cost)}</div></div>
+      <div class="amt">${fmt(p.price)}</div></div>`).join('')
+  :'<div class="empty"><div class="e">🔍</div>No match — add it in Stock tab</div>';
+}
+function addItem(pid){
+  const p=DB.products.find(x=>x.id===pid);if(!p)return;
+  if(p.stock<=0){toast('⚠️ Out of stock!');return;}
+  const ex=draft.items.find(i=>i.pid===pid);
+  if(ex){if(ex.qty>=p.stock){toast('⚠️ Only '+p.stock+' in stock');return;}ex.qty++;}
+  else draft.items.push({pid:p.id,name:p.name,price:p.price,cost:p.cost,qty:1});
+  document.getElementById('bSearch').value='';document.getElementById('bResults').innerHTML='';render();
+}
+function qty(x,d){const i=draft.items[x],p=DB.products.find(z=>z.id===i.pid);
+  if(d>0&&p&&i.qty>=p.stock){toast('⚠️ Max stock reached');return;}
+  i.qty+=d;if(i.qty<=0)draft.items.splice(x,1);render();}
+  function checkout(sub,tax,tot){
+  if(!draft.items.length)return;
+  const cust=DB.customers.find(c=>c.id===draft.custId);
+  const s={id:uid(),no:'INV-'+(1000+DB.seq++),date:today(),custId:draft.custId||'',
+    custName:cust?cust.name:'Walk-in Customer',items:draft.items,subtotal:sub,discount:+draft.discount||0,
+    tax,total:tot,paid:draft.mode==='Credit'?0:tot,mode:draft.mode};
+  draft.items.forEach(i=>{const p=DB.products.find(z=>z.id===i.pid);if(p)p.stock=Math.max(0,p.stock-i.qty);});
+  DB.sales.push(s);save();
+  draft={items:[],custId:'',discount:0,mode:'Cash'};
+  toast('Bill saved: '+s.no);viewSale(s.id,true);
+}
+let saleFilter='all';
+function rSales(){
+  let list=[...DB.sales].sort((a,b)=>b.no.localeCompare(a.no));
+  if(saleFilter==='due')list=list.filter(s=>s.total>s.paid);
+  if(saleFilter==='paid')list=list.filter(s=>s.total<=s.paid);
+  const due=list.reduce((a,s)=>a+(s.total-s.paid),0);
+  app.innerHTML=`
+  <div class="statgrid" style="grid-template-columns:1fr 1fr">
+    <div class="stat"><div class="lbl">${list.length} Bills</div><div class="val">${fmt(list.reduce((a,s)=>a+s.total,0))}</div></div>
+    <div class="stat"><div class="lbl">Pending</div><div class="val" style="color:var(--warn)">${fmt(due)}</div></div>
+  </div>
+  <div class="chips">${['all|All','paid|Paid','due|Due / Credit'].map(x=>{const[v,l]=x.split('|');
+    return `<button class="chip ${saleFilter===v?'active':''}" onclick="saleFilter='${v}';render()">${l}</button>`}).join('')}</div>
+  ${list.length?list.map(b=>billRow(b)).join(''):'<div class="empty"><div class="e">🧾</div>No bills found</div>'}`;
+}
+function viewSale(id,isNew){
+  const s=DB.sales.find(x=>x.id===id);if(!s)return;
+  const due=s.total-s.paid;
+  openSheet(`<h2>${esc(s.no)} ${isNew?'<span class="badge b-ok">NEW</span>':''}</h2>
+  <div class="sumrow"><span>Customer</span><span>${esc(s.custName)}</span></div>
+  <div class="sumrow"><span>Date</span><span>${s.date}</span></div>
+  <div class="sumrow"><span>Payment</span><span class="badge b-info">${s.mode}</span></div>
+  <div style="margin:14px 0">${s.items.map(i=>`<div class="sumrow"><span>${esc(i.name)} × ${i.qty}</span><span>${fmt(i.price*i.qty)}</span></div>`).join('')}</div>
+  <div class="sumrow"><span>Subtotal</span><span>${fmt(s.subtotal)}</span></div>
+  <div class="sumrow"><span>GST</span><span>${fmt(s.tax)}</span></div>
+  ${s.discount?`<div class="sumrow"><span>Discount</span><span>− ${fmt(s.discount)}</span></div>`:''}
+  <div class="sumrow total"><span>Total</span><span>${fmt(s.total)}</span></div>
+  ${due>0?`<div class="sumrow" style="color:var(--warn)"><span>Balance Due</span><span>${fmt(due)}</span></div>
+    <button class="btn btn-ok btn-block" style="margin-top:12px" onclick="collectPay('${s.id}')">💰 Collect Payment</button>`:''}
+  <div style="display:flex;gap:10px;margin-top:12px">
+    <button class="btn btn-pri" style="flex:1" onclick="printInvoice('${s.id}')">🖨️ Print / PDF</button>
+    <button class="btn btn-ghost" style="flex:1" onclick="closeSheet();render()">Close</button>
+  </div>
+  <button class="btn btn-bad btn-block" style="margin-top:10px" onclick="deleteSale('${s.id}')">🗑 Delete Bill (restock)</button>`);
+}
+function collectPay(id){
+  const s=DB.sales.find(x=>x.id===id),due=s.total-s.paid;
+  openSheet(`<h2>Collect Payment</h2>
+  <div class="sumrow total" style="margin-bottom:14px"><span>Due</span><span>${fmt(due)}</span></div>
+  <div class="field"><label>Amount received</label><input class="inp" id="cpAmt" type="number" value="${due}"></div>
+  <button class="btn btn-ok btn-block" onclick="doCollect('${id}')">Confirm Payment</button>`);
+}
+function doCollect(id){const s=DB.sales.find(x=>x.id===id);
+  s.paid+=Math.min(+document.getElementById('cpAmt').value||0,s.total-s.paid);
+  save();toast('Payment recorded');closeSheet();render();}
+function deleteSale(id){
+  if(!confirm('Delete this bill? Stock will be restored.'))return;
+  const s=DB.sales.find(x=>x.id===id);
+  s.items.forEach(i=>{const p=DB.products.find(z=>z.id===i.pid);if(p)p.stock+=i.qty;});
+  DB.sales=DB.sales.filter(x=>x.id!==id);save();closeSheet();toast('Bill deleted');render();
+}
+function printInvoice(id){
+  const s=DB.sales.find(x=>x.id===id),st=DB.settings;
+  document.getElementById('printArea').innerHTML=`
+  <div class="p-head"><div><h1>${esc(st.biz)}</h1>
+    <div class="p-co">${esc(st.addr)}<br>${st.phone?'Ph: '+esc(st.phone)+' · ':''}${st.gstin?'GSTIN: '+esc(st.gstin):''}</div></div>
+    <div style="text-align:right"><b>TAX INVOICE</b><br>${esc(s.no)}<br>${s.date}</div></div>
+  <div><b>Bill To:</b> ${esc(s.custName)}</div>
+  <table class="p-tbl"><tr><th>#</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
+  ${s.items.map((i,x)=>`<tr><td>${x+1}</td><td>${esc(i.name)}</td><td>${i.qty}</td><td>${fmt(i.price)}</td><td>${fmt(i.price*i.qty)}</td></tr>`).join('')}
+  </table>
+  <div class="p-sum"><div><span>Subtotal</span><span>${fmt(s.subtotal)}</span></div>
+  <div><span>GST</span><span>${fmt(s.tax)}</span></div>
+  ${s.discount?`<div><span>Discount</span><span>− ${fmt(s.discount)}</span></div>`:''}
+  <div class="p-total"><span>GRAND TOTAL</span><span>${fmt(s.total)}</span></div>
+  <div><span>Paid (${s.mode})</span><span>${fmt(s.paid)}</span></div>
+  ${s.total>s.paid?`<div><span>Balance</span><span>${fmt(s.total-s.paid)}</span></div>`:''}</div>
+  <div class="p-foot">Thank you for your business! · Generated by SalesOS</div>`;
+  closeSheet();window.print();
+}
+let stockQ='';
+function rStock(){
+  const list=DB.products.filter(p=>!stockQ||p.name.toLowerCase().includes(stockQ.toLowerCase()));
+  const val=DB.products.reduce((a,p)=>a+p.stock*p.cost,0);
+  app.innerHTML=`
+  <div class="statgrid" style="grid-template-columns:1fr 1fr">
+    <div class="stat"><div class="lbl">Products</div><div class="val">${DB.products.length}</div></div>
+    <div class="stat"><div class="lbl">Stock Value (cost)</div><div class="val">${fmt(val)}</div></div>
+  </div>
+  <div class="searchbar"><input class="inp" placeholder="Search products…" value="${esc(stockQ)}" oninput="stockQ=this.value;render()"></div>
+  ${list.map(p=>{const low=p.stock<=DB.settings.lowStock;return `
+  <div class="rowitem" onclick="productForm('${p.id}')">
+    <div class="avatar" style="background:${avat(p.name)};color:#fff">${esc(p.name[0])}</div>
+    <div class="info"><div class="t">${esc(p.name)}</div>
+      <div class="s">${fmt(p.price)} · cost ${fmt(p.cost)} <span class="badge ${p.stock===0?'b-bad':low?'b-warn':'b-ok'}">${p.stock===0?'OUT':p.stock+' '+p.unit}</span></div></div>
+    <div class="amt">${fmt(p.stock*p.price)}</div></div>`}).join('')||'<div class="empty"><div class="e">📦</div>No products — tap ＋</div>'}`;
+}
+function productForm(id){
+  const p=id?DB.products.find(x=>x.id===id):{name:'',price:'',cost:'',stock:'',unit:'pcs'};
+  openSheet(`<h2>${id?'Edit':'Add'} Product</h2>
+  <div class="field"><label>Product name</label><input class="inp" id="pfName" value="${esc(p.name)}"></div>
+  <div class="grid2">
+    <div class="field"><label>Selling price</label><input class="inp" id="pfPrice" type="number" value="${p.price}"></div>
+    <div class="field"><label>Cost price</label><input class="inp" id="pfCost" type="number" value="${p.cost}"></div>
+  </div>
+  <div class="grid2">
+    <div class="field"><label>Stock qty</label><input class="inp" id="pfStock" type="number" value="${p.stock}"></div>
+    <div class="field"><label>Unit</label><input class="inp" id="pfUnit" value="${esc(p.unit)}"></div>
+  </div>
+  <button class="btn btn-pri btn-block" onclick="saveProduct('${id||''}')">💾 Save Product</button>
+  ${id?`<button class="btn btn-bad btn-block" style="margin-top:10px" onclick="delProduct('${id}')">🗑 Delete</button>`:''}
+  <button class="btn btn-ghost btn-block" style="margin-top:10px" onclick="closeSheet()">Cancel</button>`);
+}
+function saveProduct(id){
+  const d={name:pfName.value.trim(),price:+pfPrice.value||0,cost:+pfCost.value||0,stock:+pfStock.value||0,unit:pfUnit.value.trim()||'pcs'};
+  if(!d.name){toast('Enter product name');return;}
+  if(id){Object.assign(DB.products.find(x=>x.id===id),d);}
+  else DB.products.push({id:uid(),...d});
+  save();closeSheet();toast('Product saved');render();
+}
+function delProduct(id){if(!confirm('Delete this product?'))return;
+  DB.products=DB.products.filter(x=>x.id!==id);save();closeSheet();toast('Deleted');render();}
+let custQ='';
+function rCust(){
+  const list=DB.customers.filter(c=>!custQ||c.name.toLowerCase().includes(custQ.toLowerCase())||c.phone.includes(custQ));
+  const totDue=list.reduce((a,c)=>a+custBal(c.id),0);
+  app.innerHTML=`
+  <div class="statgrid" style="grid-template-columns:1fr 1fr">
+    <div class="stat"><div class="lbl">Customers</div><div class="val">${DB.customers.length}</div></div>
+    <div class="stat"><div class="lbl">Total Receivable</div><div class="val" style="color:var(--warn)">${fmt(totDue)}</div></div>
+  </div>
+  <div class="searchbar"><input class="inp" placeholder="Search name or phone…" value="${esc(custQ)}" oninput="custQ=this.value;render()"></div>
+  ${list.map(c=>{const bal=custBal(c.id);return `
+  <div class="rowitem" onclick="customerForm('${c.id}')">
+    <div class="avatar" style="background:${avat(c.name)};color:#fff">${esc(c.name[0]||'?')}</div>
+    <div class="info"><div class="t">${esc(c.name)}</div><div class="s">${esc(c.phone||'—')} · ${DB.sales.filter(s=>s.custId===c.id).length} bills</div></div>
+    <div class="amt" style="color:${bal>0?'var(--warn)':'var(--ok)'}">${bal>0?fmt(bal):'✓'}</div></div>`}).join('')}`;
+}
+function customerForm(id){
+  const c=id?DB.customers.find(x=>x.id===id):{name:'',phone:'',email:'',addr:''};
+  openSheet(`<h2>${id?'Edit':'Add'} Customer</h2>
+  <div class="field"><label>Name</label><input class="inp" id="cfName" value="${esc(c.name)}"></div>
+  <div class="grid2">
+    <div class="field"><label>Phone</label><input class="inp" id="cfPhone" type="tel" value="${esc(c.phone)}"></div>
+    <div class="field"><label>Email</label><input class="inp" id="cfEmail" value="${esc(c.email)}"></div>
+  </div>
+  <div class="field"><label>Address</label><input class="inp" id="cfAddr" value="${esc(c.addr)}"></div>
+  <button class="btn btn-pri btn-block" onclick="saveCustomer('${id||''}')">💾 Save</button>
+  ${id?`<button class="btn btn-bad btn-block" style="margin-top:10px" onclick="delCustomer('${id}')">🗑 Delete</button>`:''}
+  <button class="btn btn-ghost btn-block" style="margin-top:10px" onclick="closeSheet()">Cancel</button>`);
+}
+function saveCustomer(id){
+  const d={name:cfName.value.trim(),phone:cfPhone.value.trim(),email:cfEmail.value.trim(),addr:cfAddr.value.trim()};
+  if(!d.name){toast('Enter name');return;}
+  if(id)Object.assign(DB.customers.find(x=>x.id===id),d);
+  else DB.customers.push({id:uid(),...d,balance:0,created:today()});
+  save();closeSheet();toast('Customer saved');render();
+}
+function delCustomer(id){if(!confirm('Delete customer? (Sales history stays)'))return;
+  DB.customers=DB.customers.filter(x=>x.id!==id);save();closeSheet();toast('Deleted');render();}
+let repTab='p&l';
+function rMore(){
+  const m=today().slice(0,7);
+  const ms=DB.sales.filter(s=>s.date.startsWith(m));
+  const rev=ms.reduce((a,s)=>a+s.total,0), profit=ms.reduce((a,s)=>a+saleProfit(s),0);
+  const exp=DB.expenses.reduce((a,e)=>a+e.amt,0);
+  app.innerHTML=`
+  <div class="chips">${['p&l|P&L','sales|Sales Report','exp|Expenses'].map(x=>{const[v,l]=x.split('|');
+    return `<button class="chip ${repTab===v?'active':''}" onclick="repTab='${v}';render()">${l}</button>`}).join('')}</div>
+  <div id="repBody"></div>`;
+  const b=document.getElementById('repBody');
+  if(repTab==='p&l'){
+    b.innerHTML=`<div class="statgrid"><div class="stat"><div class="lbl">Revenue (${m})</div><div class="val">${fmt(rev)}</div></div>
+    <div class="stat"><div class="lbl">Gross Profit</div><div class="val" style="color:var(--ok)">${fmt(profit)}</div></div>
+    <div class="stat"><div class="lbl">Expenses</div><div class="val" style="color:var(--bad)">${fmt(exp)}</div></div>
+    <div class="stat"><div class="lbl">Net Profit</div><div class="val" style="color:${profit-exp>=0?'var(--ok)':'var(--bad)'}">${fmt(profit-exp)}</div></div></div>
+    <div class="panel"><h3>📊 Monthly Revenue</h3><canvas id="chBar" height="170"></canvas></div>`;
+    drawBars();
+  } else if(repTab==='sales'){
+    const byDay={};DB.sales.forEach(s=>{byDay[s.date]=(byDay[s.date]||0)+s.total;});
+    const rows=Object.keys(byDay).sort().reverse().map(d=>`<tr><td>${d}</td><td>${DB.sales.filter(s=>s.date===d).length}</td><td><b>${fmt(byDay[d])}</b></td></tr>`).join('');
+    b.innerHTML=`<div class="panel"><div class="tblwrap"><table><tr><th>Date</th><th>Bills</th><th>Revenue</th></tr>${rows||'<tr><td colspan="3" class="empty">No data</td></tr>'}</table></div></div>
+    <button class="btn btn-ghost btn-block" onclick="exportCSV()">⬇ Export Sales CSV</button>`;
+  } else {
+    b.innerHTML=`<div class="panel"><h3>Expenses <button class="btn btn-sm btn-pri" style="margin-left:auto" onclick="expForm()">＋ Add</button></h3>
+    ${DB.expenses.map(e=>`<div class="sumrow"><span>${esc(e.name)} <small style="color:var(--mut)">(${e.date})</small></span>
+      <span><b>${fmt(e.amt)}</b> <a style="color:var(--bad);cursor:pointer" onclick="DB.expenses=DB.expenses.filter(x=>x.id!=='${e.id}');save();render()">✕</a></span></div>`).join('')||'<div class="empty">No expenses</div>'}</div>`;
+  }
+}
+function drawBars(){
+  const c=document.getElementById('chBar');if(!c)return;
+  const months={};DB.sales.forEach(s=>{const m=s.date.slice(0,7);months[m]=(months[m]||0)+s.total;});
+  const keys=Object.keys(months).sort().slice(-6);
+  const ctx=c.getContext('2d'),W=c.width=c.offsetWidth*2,H=340;
+  const max=Math.max(...keys.map(k=>months[k]),1),bw=(W-40)/Math.max(keys.length,1);
+  keys.forEach((k,i)=>{const h=(H-90)*months[k]/max,x=20+i*bw+bw*.15,y=H-50-h;
+    const gr=ctx.createLinearGradient(0,y,0,H-50);gr.addColorStop(0,'#a855f7');gr.addColorStop(1,'#5b8cff');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.roundRect(x,y,bw*.7,h,[8,8,0,0]);ctx.fill();
+    ctx.fillStyle='#8b98b3';ctx.font='18px Arial';ctx.textAlign='center';
+    ctx.fillText(k.slice(5)+'/'+k.slice(2,4),x+bw*.35,H-22);
+    ctx.fillStyle='#e8edf7';ctx.font='bold 17px Arial';ctx.fillText((months[k]/1000).toFixed(1)+'k',x+bw*.35,y-8);});
+}
+function expForm(){
+  openSheet(`<h2>Add Expense</h2>
+  <div class="field"><label>Description</label><input class="inp" id="efName"></div>
+  <div class="field"><label>Amount</label><input class="inp" id="efAmt" type="number"></div>
+  <button class="btn btn-pri btn-block" onclick="if(efName.value&&+efAmt.value){DB.expenses.push({id:uid(),name:efName.value,amt:+efAmt.value,date:today()});save();closeSheet();render();toast('Expense added')}">Save</button>`);
+}
+function exportCSV(){
+  let csv='Invoice,Date,Customer,Items,Subtotal,GST,Discount,Total,Paid,Mode\n';
+  DB.sales.forEach(s=>{csv+=`${s.no},${s.date},"${s.custName}",${s.items.length},${s.subtotal},${s.tax},${s.discount},${s.total},${s.paid},${s.mode}\n`;});
+  download(new Blob([csv],{type:'text/csv'}),'sales-report.csv');
+}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+function openSettings(){
+  const s=DB.settings;
+  openSheet(`<h2>⚙ Business Settings</h2>
+  <div class="field"><label>Business name</label><input class="inp" id="sBiz" value="${esc(s.biz)}"></div>
+  <div class="grid2">
+    <div class="field"><label>Phone</label><input class="inp" id="sPhone" value="${esc(s.phone)}"></div>
+    <div class="field"><label>GSTIN</label><input class="inp" id="sGstin" value="${esc(s.gstin)}"></div>
+  </div>
+  <div class="field"><label>Address</label><input class="inp" id="sAddr" value="${esc(s.addr)}"></div>
+  <div class="grid2">
+    <div class="field"><label>GST %</label><input class="inp" id="sGst" type="number" value="${s.gstRate}"></div>
+    <div class="field"><label>Low stock alert ≤</label><input class="inp" id="sLow" type="number" value="${s.lowStock}"></div>
+  </div>
+  <div class="field"><label>Currency symbol</label><input class="inp" id="sCur" value="${esc(s.currency)}" maxlength="3"></div>
+  <button class="btn btn-pri btn-block" onclick="DB.settings={biz:sBiz.value,phone:sPhone.value,gstin:sGstin.value,addr:sAddr.value,gstRate:+sGst.value||0,lowStock:+sLow.value||5,currency:sCur.value||'₹'};save();closeSheet();toast('Settings saved');render()">💾 Save Settings</button>
+  <button class="btn btn-ghost btn-block" style="margin-top:10px" onclick="closeSheet()">Cancel</button>`);
+}
+function openBackup(){
+  openSheet(`<h2>⬇ Backup & Restore</h2>
+  <p style="color:var(--mut);font-size:13px;margin-bottom:14px">Your data is stored on this device only. Export a backup regularly and import it on any other device.</p>
+  <button class="btn btn-pri btn-block" onclick="download(new Blob([JSON.stringify(DB)],{type:'application/json'}),'salesos-backup.json');toast('Backup downloaded')">📤 Export Full Backup (JSON)</button>
+  <button class="btn btn-ghost btn-block" style="margin-top:10px" onclick="document.getElementById('restoreFile').click()">📥 Import Backup</button>
+  <input type="file" id="restoreFile" accept=".json" class="hidden" onchange="restoreFile(this)">
+  <button class="btn btn-bad btn-block" style="margin-top:16px" onclick="if(confirm('Erase ALL data and reset app?')){localStorage.removeItem(LS);location.reload()}">🗑 Factory Reset</button>
+  <button class="btn btn-ghost btn-block" style="margin-top:10px" onclick="closeSheet()">Close</button>
+  <p style="margin-top:18px;font-size:11px;color:var(--mut);text-align:center">SalesOS v1.0 · BCA Final Year Project</p>`);
+}
+function restoreFile(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{try{DB=JSON.parse(e.target.result);save();closeSheet();toast('Backup restored');render();}
+    catch(x){toast('Invalid backup file');}};
+  r.readAsText(f);
+}
+function onboarding(){
+  if(localStorage.getItem('salesos_ob'))return;
+  openSheet(`<div class="ob-hero"><div class="logo">S</div><h1>SalesOS</h1>
+  <p>The flagship sales management suite for your business — billing, stock, customers, GST reports. All offline, all on your phone.</p></div>
+  <div class="featurelist">
+    <div><div class="fi" style="background:rgba(91,140,255,.15)">🧾</div>GST invoice billing with print/PDF</div>
+    <div><div class="fi" style="background:rgba(52,211,153,.15)">📦</div>Live stock & low-stock alerts</div>
+    <div><div class="fi" style="background:rgba(251,191,36,.15)">👥</div>Customer ledger & due collection</div>
+    <div><div class="fi" style="background:rgba(168,85,247,.15)">📊</div>Profit & loss, sales reports, backup</div>
+  </div>
+  <div class="field"><label>Your business name</label><input class="inp" id="obBiz" placeholder="e.g. Sharma Electronics"></div>
+  <button class="btn btn-pri btn-block" onclick="DB.settings.biz=obBiz.value||'My Business';save();localStorage.setItem('salesos_ob','1');closeSheet();render();toast('Welcome to SalesOS, '+DB.settings.biz+'!')">🚀 Get Started</button>`);
+}
+seed();
+render();
+setTimeout(onboarding,400);
+</script>
+</body>
+</html>
